@@ -18,11 +18,10 @@ public class BlackjackGame extends AbstractGame {
     public BlackjackGame() {
         super("Blackjack");
         this.deck = new Deck();
-        this.you = new Player("You");
-        this.cpu1 = new Player("CPU 1");
-        this.cpu2 = new Player("CPU 2");
-        this.dealer = new Player("Dealer");
-        dealInitialCards();
+        this.you = new Player("You", 100);
+        this.cpu1 = new Player("CPU 1", 100);
+        this.cpu2 = new Player("CPU 2", 100);
+        this.dealer = new Player("Dealer", -1);
     }
 
     public final void dealInitialCards() {
@@ -113,14 +112,43 @@ class Deck {
 
  class Player {
     private final String name;
+    private int balance; // Starting balance for each player
+    private int bet; // Current bet for the round
     private final List<Card> hand = new ArrayList<>();
 
-    public Player(String name) {
+    public Player(String name, int startingBalance) {
         this.name = name;
+        this.balance = startingBalance;
     }
 
     public String getName() {
         return name;
+    }
+
+    public int getBalance() {
+        return balance;
+    }
+
+    public int setBalance(int balance) {
+        this.balance = balance;
+        return balance;
+    }
+
+    public int adjustBalance(int amount) {
+        this.balance += amount;
+        return balance;
+    }
+
+    public int getBet() {
+        return bet;
+    }
+
+    public int setBet(int bet) {
+        if (bet > balance) {
+            throw new IllegalArgumentException("Bet cannot exceed current balance");
+        }
+        this.bet = bet;
+        return bet;
     }
 
     public List<Card> getHand() {
