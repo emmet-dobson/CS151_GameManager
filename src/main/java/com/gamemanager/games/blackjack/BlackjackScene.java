@@ -1,6 +1,7 @@
 package com.gamemanager.games.blackjack;
 
 import com.gamemanager.App;
+
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
