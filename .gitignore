@@ -1,0 +1,20 @@
+# Build output
+target/
+*.class
+
+# IDE
+.vscode/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+
+# Runtime data (created by the app; do not commit player data)
+data/
+user_accounts.txt
+high_scores.txt
+
+# OS
+.DS_Store
+Thumbs.db
