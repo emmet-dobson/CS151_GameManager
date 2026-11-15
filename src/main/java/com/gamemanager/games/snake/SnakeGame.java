@@ -105,16 +105,8 @@ public class SnakeGame extends AbstractGame {
                     }
                 }
 
-                //removing end of tail every frame
+                /// Remove the tail and add the new head
                 snake.remove(snake.size() - 1);
-                snake.add(0,newHead);
-
-                //check if snake hit body
-                if(snake.contains(newHead)){
-                    gameOver = true;
-                    return;
-                }
-
                 snake.add(0, newHead);
             }
 
