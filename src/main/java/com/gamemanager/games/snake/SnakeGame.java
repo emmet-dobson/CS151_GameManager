@@ -18,8 +18,9 @@ public class SnakeGame extends AbstractGame {
 
     private final ArrayList<Position> snake = new ArrayList<>();
     private Direction direction;
+    private Direction nextDirection;
     private boolean gameOver;
-    private boolean directionChanged;
+    
 
     public SnakeGame() {
         super("Snake");
@@ -35,6 +36,8 @@ public class SnakeGame extends AbstractGame {
 
         Direction[] directions = Direction.values();
         direction = directions[new Random().nextInt(directions.length)];
+
+        nextDirection = direction;
 
         snake.add(new Position(x, y));
 
@@ -59,17 +62,12 @@ public class SnakeGame extends AbstractGame {
 
     gameOver = false;
     setScore(0);
-    directionChanged = false;
     spawnFood();
 
     }
 
     public void changeDirection(Direction newDirection){
-        if(newDirection == null || gameOver || directionChanged){
-            return;
-        }
-
-        if(newDirection == direction){
+        if(newDirection == null || gameOver || nextDirection != direction){
             return;
         }
 
@@ -80,8 +78,7 @@ public class SnakeGame extends AbstractGame {
                 return;
             }
 
-            direction = newDirection;
-            directionChanged = true;
+            nextDirection = newDirection;
             }
 
             public void move(){
@@ -89,6 +86,7 @@ public class SnakeGame extends AbstractGame {
                     return;
                 }
                 
+                direction = nextDirection;
                 Position head = snake.get(0);
                 int x = head.x();
                 int y = head.y();
@@ -131,7 +129,6 @@ public class SnakeGame extends AbstractGame {
                 } else {
                     snake.remove(snake.size() - 1);
                 }
-                directionChanged = false;
             }
 
             private Position food;
