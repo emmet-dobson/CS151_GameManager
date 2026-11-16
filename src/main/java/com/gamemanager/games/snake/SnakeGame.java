@@ -8,7 +8,7 @@ import java.util.Random;
 /** Snake rules and state. No JavaFX here. TODO: grid, movement, food, collisions. */
 public class SnakeGame extends AbstractGame {
 
-    public static final int GRID_SIZE = 35;
+    public static final int GRID_SIZE = 25;
 
     public record Position (int x, int y){}
 

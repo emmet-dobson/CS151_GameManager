@@ -18,7 +18,7 @@ import javafx.geometry.Pos;
 
 public class SnakeScene {
 
-    private static final int CELL_SIZE = 25;
+    private static final int CELL_SIZE = 24;
 
     private final BorderPane view = new BorderPane();
     private final SnakeGame game;
@@ -44,6 +44,10 @@ public class SnakeScene {
 
         gameOverMenu.setAlignment(Pos.CENTER);
         gameOverMenu.setVisible(false);
+        gameOverLabel.setStyle(
+            "-fx-font-size: 48px;" +
+            "-fx-text-fill: red;"
+);
         gameBoard.getChildren().addAll(canvas, gameOverMenu);
 
         view.setCenter(gameBoard);
@@ -52,20 +56,30 @@ public class SnakeScene {
 
         // Allow keyboard input
         view.setFocusTraversable(true);
+        canvas.setOnMouseClicked(event -> view.requestFocus());
 
-        view.setOnKeyPressed(event -> {
+        view.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event ->{
             switch (event.getCode()) {
-                case UP -> game.changeDirection(SnakeGame.Direction.UP);
+                case UP -> {
+                    game.changeDirection(SnakeGame.Direction.UP);
+                    event.consume();
+                }
                 case DOWN -> game.changeDirection(SnakeGame.Direction.DOWN);
                 case LEFT -> game.changeDirection(SnakeGame.Direction.LEFT);
                 case RIGHT -> game.changeDirection(SnakeGame.Direction.RIGHT);
+                case ENTER -> {
+                    if(game.isOver()){
+                        replayButton.fire();
+                        event.consume();
+                    }
+                }
                 default -> {}
             }
         });
 
         // Move the snake every 200 milliseconds
         timeline = new Timeline(
-            new KeyFrame(Duration.millis(200), event -> updateGame())
+            new KeyFrame(Duration.millis(150), event -> updateGame())
         );
         //keeps updating until gameover
         timeline.setCycleCount(Timeline.INDEFINITE);
@@ -127,7 +141,7 @@ public class SnakeScene {
         gc.setFill(Color.GREEN);
 
         for (SnakeGame.Position position : game.getSnake()) {
-            gc.fillRect(
+            gc.fillOval(
                 position.x() * CELL_SIZE,
                 position.y() * CELL_SIZE,
                 CELL_SIZE - 1,
