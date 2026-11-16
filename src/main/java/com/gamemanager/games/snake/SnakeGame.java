@@ -8,7 +8,7 @@ import java.util.Random;
 /** Snake rules and state. No JavaFX here. TODO: grid, movement, food, collisions. */
 public class SnakeGame extends AbstractGame {
 
-    public static final int GRID_SIZE = 20;
+    public static final int GRID_SIZE = 35;
 
     public record Position (int x, int y){}
 
@@ -19,6 +19,7 @@ public class SnakeGame extends AbstractGame {
     private final ArrayList<Position> snake = new ArrayList<>();
     private Direction direction;
     private boolean gameOver;
+    private boolean directionChanged;
 
     public SnakeGame() {
         super("Snake");
@@ -58,11 +59,17 @@ public class SnakeGame extends AbstractGame {
 
     gameOver = false;
     setScore(0);
+    directionChanged = false;
+    spawnFood();
 
     }
 
     public void changeDirection(Direction newDirection){
-        if(newDirection == null || gameOver){
+        if(newDirection == null || gameOver || directionChanged){
+            return;
+        }
+
+        if(newDirection == direction){
             return;
         }
 
@@ -74,6 +81,7 @@ public class SnakeGame extends AbstractGame {
             }
 
             direction = newDirection;
+            directionChanged = true;
             }
 
             public void move(){
@@ -98,7 +106,17 @@ public class SnakeGame extends AbstractGame {
                 }
                 Position newHead = new Position(x, y);
 
-                for(int i = 0; i < snake.size() - 1; i++){
+                boolean eating = newHead.equals(food);
+
+                int segmentsToCheck;
+                
+                if(eating){
+                    segmentsToCheck = snake.size();
+                } else {
+                    segmentsToCheck = snake.size() - 1;
+                }
+
+                for(int i = 0; i < segmentsToCheck; i++){
                     if(snake.get(i).equals(newHead)){
                         gameOver = true;
                         return;
@@ -106,8 +124,35 @@ public class SnakeGame extends AbstractGame {
                 }
 
                 /// Remove the tail and add the new head
-                snake.remove(snake.size() - 1);
                 snake.add(0, newHead);
+                if(eating){
+                    setScore(getScore() + 100);
+                    spawnFood();
+                } else {
+                    snake.remove(snake.size() - 1);
+                }
+                directionChanged = false;
+            }
+
+            private Position food;
+            private final Random random = new Random();
+
+            //spawns food in random location where snake is not
+            private void spawnFood(){
+                if(snake.size() == GRID_SIZE * GRID_SIZE){
+                    food = null;
+                    gameOver = true;
+                    return;
+                }
+                Position newFood;
+
+                do{
+                    int x = random.nextInt(GRID_SIZE);
+                    int y = random.nextInt(GRID_SIZE);
+
+                    newFood = new Position(x,y);
+                } while(snake.contains(newFood));
+                food = newFood;
             }
 
             public List<Position> getSnake(){
@@ -116,6 +161,10 @@ public class SnakeGame extends AbstractGame {
 
             public Direction getDirection(){
                 return direction;
+            }
+
+            public Position getFood(){
+                return food;
             }
 
       @Override

@@ -12,6 +12,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
+import javafx.scene.control.Button;
+import javafx.scene.layout.VBox;
+import javafx.geometry.Pos;
 
 public class SnakeScene {
 
@@ -26,7 +29,10 @@ public class SnakeScene {
     );
 
     private final Label status = new Label("Use arrow keys to move");
+    private final Label scoreLabel = new Label("Score: 0");
     private final Label gameOverLabel = new Label("Game Over!");
+    private final Button replayButton = new Button("Play Again");
+    private final VBox gameOverMenu = new VBox(15, gameOverLabel , replayButton);
     private final Timeline timeline;
 
     // Constructor
@@ -36,11 +42,13 @@ public class SnakeScene {
         // StackPane allows text to appear over the game board
         StackPane gameBoard = new StackPane();
 
-        gameBoard.getChildren().addAll(canvas, gameOverLabel);
-        gameOverLabel.setVisible(false);
+        gameOverMenu.setAlignment(Pos.CENTER);
+        gameOverMenu.setVisible(false);
+        gameBoard.getChildren().addAll(canvas, gameOverMenu);
 
         view.setCenter(gameBoard);
         view.setBottom(status);
+        view.setTop(scoreLabel);
 
         // Allow keyboard input
         view.setFocusTraversable(true);
@@ -57,18 +65,23 @@ public class SnakeScene {
 
         // Move the snake every 200 milliseconds
         timeline = new Timeline(
-            new KeyFrame(Duration.millis(200), event -> {
-                game.move();
-                draw();
-
-                if (game.isOver()) {
-                    gameOverLabel.setVisible(true);
-                    status.setText("Game Over!");
-                }
-            })
+            new KeyFrame(Duration.millis(200), event -> updateGame())
         );
         //keeps updating until gameover
         timeline.setCycleCount(Timeline.INDEFINITE);
+
+        replayButton.setOnAction(event -> {
+            game.reset();
+
+            scoreLabel.setText("Score: 0");
+            status.setText("Use arrow keys to move");
+
+            gameOverMenu.setVisible(false);
+            draw();
+            timeline.playFromStart();
+
+            Platform.runLater(() -> view.requestFocus());
+        });
 
         // Start when the Snake view is displayed and stops when out of focus   
         view.sceneProperty().addListener((obs, oldScene, newScene) -> {
@@ -89,11 +102,12 @@ public class SnakeScene {
     // update every 200ms
     private void updateGame() {
         game.move();
+        scoreLabel.setText("Score: " + game.getScore());
         draw();
 
         if (game.isOver()) {
             timeline.stop();
-            gameOverLabel.setVisible(true);
+            gameOverMenu.setVisible(true);
             status.setText("Game Over!");
         }
     }
@@ -124,6 +138,19 @@ public class SnakeScene {
         // Draw the border
         gc.setStroke(Color.GRAY);
         gc.strokeRect(0, 0, boardSize, boardSize);
+
+        SnakeGame.Position food = game.getFood();
+
+        if(food != null){
+            gc.setFill(Color.BLACK);
+
+            gc.fillOval(
+                food.x() * CELL_SIZE,
+                food.y() * CELL_SIZE,
+                CELL_SIZE - 2,
+                CELL_SIZE - 2
+            );
+        }
     }
 
     public Node getView() {
