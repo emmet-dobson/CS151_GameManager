@@ -44,6 +44,10 @@ _TODO: fill in each member's area of ownership and commit focus._
 | Member | Area |
 |--------|------|
 | _name_ | Game Manager (login, storage, toolbar) |
+
 | _name_ | Blackjack |
-| _name_ | Snake |
+
+| _Anson Fong_ | Snake | Snake: 
+Implemented game logic, movement controls, food spawning, snake growth, scoring, collision detection, pause/resume functionality, and the JavaFX interface. Added replay functionality and JUnit tests.
+
 | _name_ | Connect Four |
