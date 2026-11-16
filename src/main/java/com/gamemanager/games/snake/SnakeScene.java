@@ -15,6 +15,8 @@ import javafx.util.Duration;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
 import javafx.geometry.Pos;
+import javafx.scene.effect.GaussianBlur;
+import javafx.scene.paint.Color;
 
 public class SnakeScene {
 
@@ -31,9 +33,11 @@ public class SnakeScene {
     private final Label status = new Label("Use arrow keys to move");
     private final Label scoreLabel = new Label("Score: 0");
     private final Label gameOverLabel = new Label("Game Over!");
+    private final Label pauseLabel = new Label("PAUSED");
     private final Button replayButton = new Button("Play Again");
     private final VBox gameOverMenu = new VBox(15, gameOverLabel , replayButton);
-    private final Timeline timeline;
+    private Timeline timeline;
+    private boolean paused = false;
 
     // Constructor
     public SnakeScene(App app, SnakeGame game) {
@@ -45,10 +49,16 @@ public class SnakeScene {
         gameOverMenu.setAlignment(Pos.CENTER);
         gameOverMenu.setVisible(false);
         gameOverLabel.setStyle(
-            "-fx-font-size: 48px;" +
-            "-fx-text-fill: red;"
-);
-        gameBoard.getChildren().addAll(canvas, gameOverMenu);
+            "-fx-font-size: 100px;" +
+            "-fx-text-fill: red"
+        );
+        pauseLabel.setStyle(
+            "-fx-font-size: 100px;" +
+            "-fx-text-fill: rgba(46, 142, 144, 0.6)"
+        );
+
+        gameBoard.getChildren().addAll(canvas, gameOverMenu, pauseLabel);
+        pauseLabel.setVisible(false);
 
         view.setCenter(gameBoard);
         view.setBottom(status);
@@ -73,11 +83,27 @@ public class SnakeScene {
                         event.consume();
                     }
                 }
+                case ESCAPE ->{
+                    if(!game.isOver()){
+                        paused = !paused;
+
+                        if(paused){
+                            canvas.setEffect(new GaussianBlur(5));
+                            timeline.pause();
+                            pauseLabel.setVisible(true);
+                        } else {
+                            canvas.setEffect(null);
+                            timeline.play();
+                            pauseLabel.setVisible(false);
+                        }
+                    }
+                    event.consume();
+                }
                 default -> {}
             }
         });
 
-        // Move the snake every 200 milliseconds
+        // Move the snake every ... milliseconds
         timeline = new Timeline(
             new KeyFrame(Duration.millis(150), event -> updateGame())
         );
@@ -97,7 +123,7 @@ public class SnakeScene {
             Platform.runLater(() -> view.requestFocus());
         });
 
-        // Start when the Snake view is displayed and stops when out of focus   
+        // Start when the Snake view is displayed and stops when out of focus
         view.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene != null) {
                 Platform.runLater(() -> view.requestFocus());
@@ -125,7 +151,6 @@ public class SnakeScene {
             status.setText("Game Over!");
         }
     }
-
 
     // Draw the game board and snake
     private void draw() {
