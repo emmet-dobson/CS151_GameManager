@@ -1,9 +1,5 @@
 package com.gamemanager.games.blackjack;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.gamemanager.games.AbstractGame;
 
 /** Blackjack rules and state. No JavaFX here. TODO: deck, hands, bets, turns, save state. */
@@ -15,13 +11,13 @@ public class BlackjackGame extends AbstractGame {
     private final Player cpu2;
     private final Player dealer;
 
-    public BlackjackGame() {
+    public BlackjackGame(String playerName, int startingBalance) {
         super("Blackjack");
         this.deck = new Deck();
-        this.you = new Player("You", 100);
+        this.you = new Player(playerName, startingBalance);
         this.cpu1 = new Player("CPU 1", 100);
         this.cpu2 = new Player("CPU 2", 100);
-        this.dealer = new Player("Dealer", -1);
+        this.dealer = new Player("Dealer", -1); 
     }
 
     public final void dealInitialCards() {
@@ -47,143 +43,7 @@ public class BlackjackGame extends AbstractGame {
         // TODO: reshuffle and keep balances
     }
 
-    public static void main(String[] args) {
-        BlackjackGame game = new BlackjackGame();
-        game.you.printHand();
-        game.cpu1.printHand();
-        game.cpu2.printHand();
-        game.dealer.printHand();
-    }
 }
 
-class Card {
-    private final String suit;
-    private final String rank;
 
-    public Card(String suit, String rank) {
-        this.suit = suit;
-        this.rank = rank;
-    }
 
-    public String getSuit() {
-        return suit;
-    }
-
-    public String getRank() {
-        return rank;
-    }
-
-    public int getValue() {
-        return switch (rank) {
-            case "A" -> 11;
-            case "K", "Q", "J" -> 10;
-            default -> Integer.parseInt(rank);
-        }; // Ace can be 1 or 11, but we'll handle that in the game logic
-    }
-}
-
-class Deck {
-
-    private final List<Card> cards = new ArrayList<>();
-
-    public Deck() {
-        String[] suits = {"Hearts", "Diamonds", "Clubs", "Spades"};
-        String[] ranks = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
-
-        for (String suit : suits) {
-            for (String rank : ranks) {
-                cards.add(new Card(suit, rank));
-            }
-        }
-        shuffle();
-    }
-
-    public final void shuffle() {
-        Collections.shuffle(cards);
-    }
-
-    public Card drawCard() {
-        if (cards.isEmpty()) {
-            throw new IllegalStateException("No more cards in the deck");
-        }
-        return cards.remove(cards.size() - 1);
-    }
-}
-
- class Player {
-    private final String name;
-    private int balance; // Starting balance for each player
-    private int bet; // Current bet for the round
-    private final List<Card> hand = new ArrayList<>();
-
-    public Player(String name, int startingBalance) {
-        this.name = name;
-        this.balance = startingBalance;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public int getBalance() {
-        return balance;
-    }
-
-    public int setBalance(int balance) {
-        this.balance = balance;
-        return balance;
-    }
-
-    public int adjustBalance(int amount) {
-        this.balance += amount;
-        return balance;
-    }
-
-    public int getBet() {
-        return bet;
-    }
-
-    public int setBet(int bet) {
-        if (bet > balance) {
-            throw new IllegalArgumentException("Bet cannot exceed current balance");
-        }
-        this.bet = bet;
-        return bet;
-    }
-
-    public List<Card> getHand() {
-        return hand;
-    }
-
-    public void addCard(Card card) {
-        hand.add(card);
-    }
-
-    public int getHandValue() {
-        int value = 0;
-        int aceCount = 0;
-
-        for (Card card : hand) {
-            value += card.getValue();
-            if (card.getRank().equals("A")) {
-                aceCount++;
-            }
-        }
-
-        // Adjust for Aces if value exceeds 21
-        while (value > 21 && aceCount > 0) {
-            value -= 10; // Count Ace as 1 instead of 11
-            aceCount--;
-        }
-
-        return value;
-    }
-
-    public void printHand() {
-        System.out.print(name + "'s hand: ");
-        for (Card card : hand) {
-            System.out.print(card.getRank() + " of " + card.getSuit() + ", ");
-        }
-        System.out.println("Total value: " + getHandValue());
-    }
- }
