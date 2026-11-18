@@ -1,36 +1,79 @@
 package com.gamemanager.games.blackjack;
 
 import com.gamemanager.games.AbstractGame;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 /** Blackjack rules and state. No JavaFX here. TODO: deck, hands, bets, turns, save state. */
 public class BlackjackGame extends AbstractGame {
 
-    private final Deck deck;
-    private final Player you;
-    private final Player cpu1;
-    private final Player cpu2;
-    private final Player dealer;
+    private static final int STARTING_BALANCE = 1000; // Default starting balance for players
+    private static final int COMPUTER_BET = 10; 
 
-    public BlackjackGame(String playerName, int startingBalance) {
-        super("Blackjack");
-        this.deck = new Deck();
-        this.you = new Player(playerName, startingBalance);
-        this.cpu1 = new Player("CPU 1", 100);
-        this.cpu2 = new Player("CPU 2", 100);
-        this.dealer = new Player("Dealer", -1); 
+    private final Deck deck;
+    private final Player human;
+    private final List<Player> players;
+    private final Dealer dealer;
+    private final Random random;
+    private final List<String> messages = new ArrayList<>();
+
+
+    private Phase currentPhase = Phase.BETTING;
+    private int turnIndex = 0; // Index to track whose turn it is
+
+    public BlackjackGame(String playerName) {
+        this(playerName, new Random());
     }
 
-    public final void dealInitialCards() {
-        this.deck.shuffle();
-        // Deal two cards to each player and the dealer
-        you.addCard(deck.drawCard());
-        cpu1.addCard(deck.drawCard());
-        cpu2.addCard(deck.drawCard());
-        dealer.addCard(deck.drawCard());
-        you.addCard(deck.drawCard());
-        cpu1.addCard(deck.drawCard());
-        cpu2.addCard(deck.drawCard());
-        dealer.addCard(deck.drawCard());
+    public BlackjackGame(String playerName, Random random) {
+        super("Blackjack");
+        this.random = random;
+        this.deck = new Deck();
+        this.human = new Player(playerName, COMPUTER_BET);
+        this.players = List.of(
+            human,
+            new ComputerPlayer("CPU 1", STARTING_BALANCE, new AggressiveStrategy(random)),
+            new ComputerPlayer("CPU 2", STARTING_BALANCE, new CautiousStrategy())
+        );
+        this.dealer = new Dealer();
+        setScore(STARTING_BALANCE);
+    }
+
+    // -------- Human player actions --------
+    public void placeBet(int amount) {
+        if(currentPhase!= Phase.BETTING) return; // Only allow betting in the betting phase
+        if(amount <= 0 || amount > human.getBalance()) {
+            messages.add("Invalid bet.");
+            return;
+        }
+        human.setBet(amount);
+        messages.add(human.getName() + " placed a bet of " + amount);
+        for(Player player : players) {
+            if(player != human) {
+                player.setBet(Math.min(COMPUTER_BET, player.getBalance()));
+                messages.add(player.getName() + " placed a bet of " + player.getBet());
+            }
+        }
+        dealRound();
+    }
+
+    public void hit() {
+        if(currentPhase != Phase.PLAYER_TURN || isComputerTurn()) return; // Only allow hitting during the player's turn
+        doHit();
+    }
+
+    public void stand() {
+        if(currentPhase != Phase.PLAYER_TURN || isComputerTurn()) return; // Only allow standing during the player's turn
+        doStand();
+    }
+
+    // -------- Automation (called by scene) --------
+
+    public void playNextStep() {
+        if (currentPhase == Phase.PLAYER_TURN && isComputerTurn()) {
+
+        }
     }
 
     @Override

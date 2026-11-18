@@ -8,7 +8,6 @@ public class Player {
     private int balance; // Starting balance for each player
     private int bet; // Current bet for the round
     private final Hand hand; // Player's hand of cards
-    private final List<Card> cards = new ArrayList<>();
 
     public Player(String name, int startingBalance) {
         this.name = name;
@@ -52,14 +51,13 @@ public class Player {
 
     public void addCard(Card card) {
         hand.add(card);
-        cards.add(card);
     }
 
     public int getHandValue() {
         int value = 0;
         int aceCount = 0;
 
-        for (Card card : cards) {
+        for (Card card : hand.getCards()) {
             value += card.getValue();
             if (card.getRank().equals("A")) {
                 aceCount++;
@@ -77,10 +75,16 @@ public class Player {
 
     public void printHand() {
         System.out.print(name + "'s hand: ");
-        for (Card card : cards) {
+        for (Card card : hand.getCards()) {
             System.out.print(card.getRank() + " of " + card.getSuit() + ", ");
         }
         System.out.println("Total value: " + getHandValue());
     }
+
+    void clearHand() {
+        hand.clear();
+        bet = 0;
+    }
+
  
 }
