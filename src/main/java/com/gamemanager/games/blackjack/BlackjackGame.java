@@ -72,9 +72,100 @@ public class BlackjackGame extends AbstractGame {
 
     public void playNextStep() {
         if (currentPhase == Phase.PLAYER_TURN && isComputerTurn()) {
-
+            ComputerPlayer cpu = (ComputerPlayer) currentPlayer();
+            DecisionContext context = new DecisionContext(cpu.getHand(), dealer.getUpCard(), cpu.getBalance(), cpu.getBet());
+            if(cpu.wantsHit(context)) doHit(); else doStand();
+        } else if (currentPhase == Phase.DEALER_TURN) {
+            if(dealer.wantsHit()){
+                dealer.addCard(deck.draw());
+                if(dealer.getHandValue() > 21) {
+                    messages.add("Dealer busts!");
+                    settle();
+                }
+            } else {
+                messages.add("Dealer stands.");
+                settle();
+            }
         }
     }
+
+    // -------- Round Flow --------
+
+    public void nextRound() {
+        if(currentPhase != Phase.ROUND_OVER) return; // Only allow starting a new round after the previous round is over
+        for(Player p: players) p.clearHand();
+        dealer.clearHand();
+        deck.reset();
+        messages.clear();
+        currentPhase = Phase.BETTING;
+        turnIndex = 0;
+    }
+
+    private void dealRound() {
+        messages.clear();
+        for(int i = 0; i < 2; i++) {
+            for(Player p: players) p.addCard(deck.draw());
+            dealer.addCard(deck.draw());
+        }
+        turnIndex = 0;
+        currentPhase = Phase.PLAYER_TURN;
+    }
+
+    private void doHit() {
+        Player current = currentPlayer();
+        current.addCard(deck.draw());
+        messages.add(current.getName() + " hits.");
+        if(current.getHandValue() > 21) {
+            messages.add(current.getName() + " busts!");
+            nextTurn();
+        }
+    }
+
+    private void doStand() {
+        messages.add(currentPlayer().getName() + " stands.");
+        nextTurn();
+    }
+
+    private void nextTurn() {
+        turnIndex++;
+        if(turnIndex >= players.size()) {
+            currentPhase = Phase.DEALER_TURN;
+        }
+    }
+
+    private void settle() {
+        int dealerValue = dealer.getHandValue();
+        for(Player p: players) {
+            int handValue = p.getHandValue();
+            int change = 0;
+            if(handValue > 21) {
+                change = -p.getBet();
+                messages.add(p.getName() + " loses " + p.getBet());
+            } else if(dealerValue > 21 || handValue > dealerValue) {
+                change = p.getBet();
+                messages.add(p.getName() + " wins " + p.getBet());
+            } else if(handValue < dealerValue) {
+                change = -p.getBet();
+                messages.add(p.getName() + " loses " + p.getBet());
+            } else {
+                messages.add(p.getName() + " pushes.");
+            }
+            p.adjustBalance(change);
+        }
+        currentPhase = Phase.ROUND_OVER;
+    }
+
+    // -------- Utility Methods --------
+
+    private Player currentPlayer() {
+        return players.get(turnIndex);
+    }
+
+    private boolean isComputerTurn() {
+        return currentPlayer() instanceof ComputerPlayer;
+    }
+
+    // -------- Game Interface --------
 
     @Override
     public boolean isOver() {

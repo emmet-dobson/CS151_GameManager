@@ -9,12 +9,9 @@ public class ComputerPlayer extends Player {
         this.strategy = strategy;
     }
 
-    @Override 
-    public void playTurn(Deck deck) {
-        // Simple AI: hit if hand value is less than 17
-        while (this.getHand().getValue() < 17) {
-            this.getHand().add(deck.drawCard());
-        }
+    public boolean wantsHit(DecisionContext context) {
+        return strategy.shouldHit(context);
     }
+
     
 }
